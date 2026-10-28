@@ -1,0 +1,44 @@
+{
+  "eyebrow": "Independent creative studio · Available worldwide",
+  "headlineLineOne": "Good ideas",
+  "headlineLineTwo": "deserve",
+  "headlineEmphasis": "great",
+  "headlineLineThree": "design.",
+  "intro": "We build distinctive brands and digital experiences for people making a positive mark on the world.",
+  "email": "miraclelarry02@gmail.com",
+  "whatsappNumber": "+2348107346036",
+  "services": [
+    "Brand identity design",
+    "Creative design",
+    "Web development",
+    "Video editing",
+    "Motion graphics"
+  ],
+  "testimonials": [],
+  "projects": [
+    {
+      "title": "Solenne House",
+      "category": "Brand identity · Art direction",
+      "year": "2025",
+      "image": "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1100&q=85"
+    },
+    {
+      "title": "Form & Field",
+      "category": "Digital experience · Development",
+      "year": "2025",
+      "image": "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1100&q=85"
+    },
+    {
+      "title": "Sunday Objects",
+      "category": "Campaign · Motion",
+      "year": "2024",
+      "image": "https://images.unsplash.com/photo-1490312278390-ab64016e0aa9?auto=format&fit=crop&w=1100&q=85"
+    },
+    {
+      "title": "Common Ground",
+      "category": "Visual identity · Packaging",
+      "year": "2024",
+      "image": "https://images.unsplash.com/photo-1549490349-8643362247b5?auto=format&fit=crop&w=1100&q=85"
+    }
+  ]
+}
