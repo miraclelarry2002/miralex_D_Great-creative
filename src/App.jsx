@@ -723,7 +723,7 @@ function App() {
                       setGalleryProjectId(project.id);
                     }}
                   >
-                    {project.image ? <img className="project-image" src={project.image} alt="" loading="lazy" /> : <span className="project-image-placeholder">{project.title}</span>}
+                    {project.image ? <img className="project-image" src={project.image} alt="" loading="lazy" decoding="async" /> : <span className="project-image-placeholder">{project.title}</span>}
                     <span className="project-gallery-hint">{projectMedia.length > 1 ? `${projectMedia.length} images & videos · View project` : "View project"}</span>
                     <span className="project-index">{String(index + 1).padStart(2, "0")} / {String(content.projects.length).padStart(2, "0")}</span>
                   </button>
@@ -866,8 +866,8 @@ function App() {
                   <figure className={`gallery-slide${galleryActiveIndex === index ? " focused" : ""}`} key={`${item.url}-${index}`} data-gallery-index={index}>
                     <div className="gallery-media-frame">
                       {item.type === "video"
-                        ? <video src={item.url} controls playsInline preload="metadata" aria-label={`${activeGalleryProject.title} video ${index + 1}`} />
-                        : <img src={item.url} alt={`${activeGalleryProject.title} gallery image ${index + 1}`} draggable="false" />}
+                        ? <video src={item.url} controls playsInline preload="none" aria-label={`${activeGalleryProject.title} video ${index + 1}`} />
+                        : <img src={item.url} alt={`${activeGalleryProject.title} gallery image ${index + 1}`} loading={index === galleryActiveIndex ? "eager" : "lazy"} decoding="async" draggable="false" />}
                     </div>
                     <figcaption>{String(index + 1).padStart(2, "0")} / {String(activeGalleryItems.length).padStart(2, "0")}{item.type === "video" ? " · VIDEO" : ""}</figcaption>
                   </figure>
@@ -956,8 +956,8 @@ function App() {
                             {project.media.map((item, mediaIndex) => (
                               <div className="gallery-admin-item" key={`${item.url}-${mediaIndex}`}>
                                 {item.type === "video"
-                                  ? <video src={item.url} preload="metadata" muted />
-                                  : <img src={item.url} alt={`Gallery item ${mediaIndex + 1}`} />}
+                                  ? <video src={item.url} preload="none" muted />
+                                  : <img src={item.url} alt={`Gallery item ${mediaIndex + 1}`} loading="lazy" decoding="async" />}
                                 <span>{item.type}</span>
                                 {item.type === "image" && item.url !== project.image && (
                                   <button type="button" onClick={() => {

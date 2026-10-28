@@ -451,7 +451,12 @@ async function start() {
     },
   }));
   app.use("/api", ensureVisitor);
-  app.use("/uploads", express.static(uploadsDirectory, { dotfiles: "deny", index: false }));
+  app.use("/uploads", express.static(uploadsDirectory, {
+    dotfiles: "deny",
+    index: false,
+    maxAge: "1y",
+    immutable: true,
+  }));
 
   app.get("/uploads/:filename", asyncRoute(async (request, response, next) => {
     if (!uploadBucket || !/^[a-f0-9-]+\.(?:jpg|png|webp|mp4|webm)$/i.test(request.params.filename)) {
@@ -700,7 +705,17 @@ async function start() {
 
   if (productionMode) {
     const buildDirectory = path.join(root, "dist");
-    app.use(express.static(buildDirectory));
+    app.use("/assets", express.static(path.join(buildDirectory, "assets"), {
+      maxAge: "1y",
+      immutable: true,
+    }));
+    app.use(express.static(buildDirectory, {
+      setHeaders(response, filePath) {
+        if (path.basename(filePath) === "index.html") {
+          response.setHeader("Cache-Control", "no-cache");
+        }
+      },
+    }));
     app.use((_request, response) => response.sendFile(path.join(buildDirectory, "index.html")));
   } else {
     const { createServer } = await import("vite");
