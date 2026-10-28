@@ -946,7 +946,7 @@ function App() {
                       )}
                       <label>Year<input value={project.year} maxLength="8" onChange={(event) => updateProject(index, "year", event.target.value)} /></label>
                       <label>Image URL<input value={project.image} type="text" maxLength="1000" placeholder="Upload an image or paste a public HTTPS URL" onChange={(event) => updateProject(index, "image", event.target.value)} /></label>
-                      <label className="upload-image-label">Upload cover image<input type="file" accept="image/jpeg,image/png,image/webp" disabled={uploadingProject === project.id} onChange={(event) => handleImageUpload(index, event)} /><span className="field-help">JPEG, PNG, or WebP · 25 MB maximum. Original image data is stored without resizing or recompression.</span></label>
+                      <label className="upload-image-label">Upload cover image<input type="file" accept="image/jpeg,image/png,image/webp" disabled={uploadingProject === project.id} onChange={(event) => handleImageUpload(index, event)} /><span className="field-help">JPEG, PNG, or WebP · 25 MB maximum. CMYK JPEGs with an embedded profile are color-converted to sRGB for screen display.</span></label>
                       <div className="gallery-admin">
                         <div className="gallery-admin-heading">
                           <span>Project gallery <small>{project.media?.length || 0} / 30</small></span>
@@ -970,7 +970,7 @@ function App() {
                             ))}
                           </div>
                         )}
-                        <label className="upload-image-label">Add gallery images or videos<input type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm" multiple disabled={uploadingProject === project.id || (project.media?.length || 0) >= 30} onChange={(event) => handleGalleryUpload(index, event)} /><span className="field-help">JPEG, PNG, or WebP images up to 25 MB; MP4 or WebM videos up to 100 MB. Images are stored without resizing or recompression. {uploadingProject === project.id ? "Uploading…" : ""}</span></label>
+                        <label className="upload-image-label">Add gallery images or videos<input type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm" multiple disabled={uploadingProject === project.id || (project.media?.length || 0) >= 30} onChange={(event) => handleGalleryUpload(index, event)} /><span className="field-help">JPEG, PNG, or WebP images up to 25 MB; MP4 or WebM videos up to 100 MB. CMYK JPEGs with an embedded profile are color-converted to sRGB. {uploadingProject === project.id ? "Uploading…" : ""}</span></label>
                       </div>
                       <button className="remove-project" type="button" disabled={uploadingProject === project.id} onClick={() => removeProject(index)}>Remove project</button>
                     </div>

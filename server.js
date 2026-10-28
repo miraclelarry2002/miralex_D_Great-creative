@@ -12,6 +12,7 @@ import bcrypt from "bcryptjs";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
 import { GridFSBucket, MongoClient } from "mongodb";
+import sharp from "sharp";
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 const dataDirectory = path.join(root, "data");
@@ -101,6 +102,18 @@ const videoTypes = {
   "video/mp4": { extension: ".mp4", signature: (buffer) => buffer.length > 12 && buffer.toString("ascii", 4, 8) === "ftyp" },
   "video/webm": { extension: ".webm", signature: (buffer) => buffer.length > 4 && buffer.subarray(0, 4).equals(Buffer.from([0x1a, 0x45, 0xdf, 0xa3])) },
 };
+
+async function prepareImageForWeb(buffer, contentType) {
+  if (contentType !== "image/jpeg") return buffer;
+
+  const metadata = await sharp(buffer).metadata();
+  if (metadata.space !== "cmyk" || !metadata.icc) return buffer;
+
+  return sharp(buffer)
+    .withIccProfile("srgb")
+    .jpeg({ quality: 100, chromaSubsampling: "4:4:4" })
+    .toBuffer();
+}
 
 function isUuid(value) {
   return typeof value === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
@@ -576,6 +589,7 @@ async function start() {
       response.status(400).json({ error: "Upload a valid JPEG, PNG, or WebP image." });
       return;
     }
+    const imageBuffer = await prepareImageForWeb(request.file.buffer, request.file.mimetype);
     const filename = `${randomUUID()}${type.extension}`;
     if (uploadBucket) {
       await new Promise((resolve, reject) => {
@@ -585,11 +599,11 @@ async function start() {
         });
         stream.once("error", reject);
         stream.once("finish", resolve);
-        stream.end(request.file.buffer);
+        stream.end(imageBuffer);
       });
     } else {
       await fs.mkdir(uploadsDirectory, { recursive: true });
-      await fs.writeFile(path.join(uploadsDirectory, filename), request.file.buffer, { flag: "wx" });
+      await fs.writeFile(path.join(uploadsDirectory, filename), imageBuffer, { flag: "wx" });
     }
     response.status(201).json({ url: `/uploads/${filename}` });
   }));
@@ -612,6 +626,7 @@ async function start() {
       response.status(400).json({ error: "Upload a valid JPEG, PNG, WebP, MP4, or WebM file." });
       return;
     }
+    const mediaBuffer = type ? await prepareImageForWeb(request.file.buffer, request.file.mimetype) : request.file.buffer;
     const filename = `${randomUUID()}${acceptedType.extension}`;
     if (uploadBucket) {
       await new Promise((resolve, reject) => {
@@ -621,11 +636,11 @@ async function start() {
         });
         stream.once("error", reject);
         stream.once("finish", resolve);
-        stream.end(request.file.buffer);
+        stream.end(mediaBuffer);
       });
     } else {
       await fs.mkdir(uploadsDirectory, { recursive: true });
-      await fs.writeFile(path.join(uploadsDirectory, filename), request.file.buffer, { flag: "wx" });
+      await fs.writeFile(path.join(uploadsDirectory, filename), mediaBuffer, { flag: "wx" });
     }
     response.status(201).json({ url: `/uploads/${filename}`, type: mediaType });
   }));
