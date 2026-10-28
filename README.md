@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # miralex_D_Great creative agency
 
 ## Run locally
@@ -78,3 +79,7 @@ sessions, and uploaded files across deployments.
 The included Blueprint uses Render's free plan, which may sleep when idle and
 take longer to respond on the first visit after inactivity. Choose an
 always-on plan in Render if you need consistent response times.
+=======
+# miralex_D_Great-creative
+a website showcasing portfoli
+>>>>>>> 476e9a72cdabe8fd9ccb4c28ea8d1c93ceb1f5c9
