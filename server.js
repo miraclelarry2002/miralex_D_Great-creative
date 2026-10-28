@@ -98,21 +98,38 @@ const imageTypes = {
   "image/png": { extension: ".png", signature: (buffer) => buffer.length > 8 && buffer.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])) },
   "image/webp": { extension: ".webp", signature: (buffer) => buffer.length > 12 && buffer.toString("ascii", 0, 4) === "RIFF" && buffer.toString("ascii", 8, 12) === "WEBP" },
 };
+const optimizedImageType = { extension: ".webp", contentType: "image/webp" };
 const videoTypes = {
   "video/mp4": { extension: ".mp4", signature: (buffer) => buffer.length > 12 && buffer.toString("ascii", 4, 8) === "ftyp" },
   "video/webm": { extension: ".webm", signature: (buffer) => buffer.length > 4 && buffer.subarray(0, 4).equals(Buffer.from([0x1a, 0x45, 0xdf, 0xa3])) },
 };
 
 async function prepareImageForWeb(buffer, contentType) {
-  if (contentType !== "image/jpeg") return buffer;
-
   const metadata = await sharp(buffer).metadata();
-  if (metadata.space !== "cmyk" || !metadata.icc) return buffer;
+  const animated = (metadata.pages || 1) > 1;
+  const image = sharp(buffer, { animated }).rotate().resize({
+    width: 2000,
+    height: 2000,
+    fit: "inside",
+    withoutEnlargement: true,
+  });
+  if (contentType === "image/jpeg" && metadata.space === "cmyk" && metadata.icc) {
+    image.withIccProfile("srgb");
+  } else {
+    image.toColourspace("srgb");
+  }
+  const optimizedBuffer = await image.webp({
+    quality: 84,
+    alphaQuality: 100,
+    effort: 5,
+    animated,
+  }).toBuffer();
 
-  return sharp(buffer)
-    .withIccProfile("srgb")
-    .jpeg({ quality: 100, chromaSubsampling: "4:4:4" })
-    .toBuffer();
+  return {
+    buffer: optimizedBuffer,
+    extension: optimizedImageType.extension,
+    contentType: optimizedImageType.contentType,
+  };
 }
 
 function isUuid(value) {
@@ -589,21 +606,21 @@ async function start() {
       response.status(400).json({ error: "Upload a valid JPEG, PNG, or WebP image." });
       return;
     }
-    const imageBuffer = await prepareImageForWeb(request.file.buffer, request.file.mimetype);
-    const filename = `${randomUUID()}${type.extension}`;
+    const image = await prepareImageForWeb(request.file.buffer, request.file.mimetype);
+    const filename = `${randomUUID()}${image.extension}`;
     if (uploadBucket) {
       await new Promise((resolve, reject) => {
         const stream = uploadBucket.openUploadStream(filename, {
-          contentType: request.file.mimetype,
-          metadata: { contentType: request.file.mimetype },
+          contentType: image.contentType,
+          metadata: { contentType: image.contentType },
         });
         stream.once("error", reject);
         stream.once("finish", resolve);
-        stream.end(imageBuffer);
+        stream.end(image.buffer);
       });
     } else {
       await fs.mkdir(uploadsDirectory, { recursive: true });
-      await fs.writeFile(path.join(uploadsDirectory, filename), imageBuffer, { flag: "wx" });
+      await fs.writeFile(path.join(uploadsDirectory, filename), image.buffer, { flag: "wx" });
     }
     response.status(201).json({ url: `/uploads/${filename}` });
   }));
@@ -626,13 +643,15 @@ async function start() {
       response.status(400).json({ error: "Upload a valid JPEG, PNG, WebP, MP4, or WebM file." });
       return;
     }
-    const mediaBuffer = type ? await prepareImageForWeb(request.file.buffer, request.file.mimetype) : request.file.buffer;
-    const filename = `${randomUUID()}${acceptedType.extension}`;
+    const image = type ? await prepareImageForWeb(request.file.buffer, request.file.mimetype) : null;
+    const mediaBuffer = image?.buffer || request.file.buffer;
+    const filename = `${randomUUID()}${image?.extension || acceptedType.extension}`;
+    const contentType = image?.contentType || request.file.mimetype;
     if (uploadBucket) {
       await new Promise((resolve, reject) => {
         const stream = uploadBucket.openUploadStream(filename, {
-          contentType: request.file.mimetype,
-          metadata: { contentType: request.file.mimetype },
+          contentType,
+          metadata: { contentType },
         });
         stream.once("error", reject);
         stream.once("finish", resolve);

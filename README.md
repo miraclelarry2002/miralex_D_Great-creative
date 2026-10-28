@@ -46,8 +46,8 @@ Saving the portfolio also adds that service to the public “What we do” list.
 - `admin_sessions`: short-lived administrator sessions
 
 Project covers and gallery images can be JPEG, PNG, or WebP (up to 25 MB each).
-RGB images are stored as supplied. CMYK JPEGs with embedded color profiles are
-converted to sRGB so browsers display their colors consistently.
+Images are converted to high-quality sRGB WebP, resized proportionally to a
+maximum dimension of 2000 pixels, and optimized to reduce download sizes.
 Project galleries also accept MP4 and WebM videos (up to 100 MB each), with up
 to 30 gallery items per project. These files are stored in MongoDB GridFS when
 MongoDB is configured. Without MongoDB in local development, uploads use
