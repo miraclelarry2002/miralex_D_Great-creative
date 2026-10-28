@@ -25,6 +25,7 @@ const adminPasswordHash = process.env.ADMIN_PASSWORD_HASH || "";
 const sessionSecret = process.env.SESSION_SECRET || "";
 const mongoUri = process.env.MONGODB_URI || "";
 const mongoDatabaseName = process.env.MONGODB_DB || undefined;
+const maxImageSize = 25 * 1024 * 1024;
 const defaultWhatsAppNumber = "+2348107346036";
 const app = express();
 const mongoClient = mongoUri ? new MongoClient(mongoUri) : null;
@@ -85,7 +86,7 @@ const loginLimit = rateLimit({
 });
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 10 * 1024 * 1024, files: 1 },
+  limits: { fileSize: maxImageSize, files: 1 },
 });
 const galleryUpload = multer({
   storage: multer.memoryStorage(),
@@ -596,8 +597,8 @@ async function start() {
       return;
     }
     const type = imageTypes[request.file.mimetype];
-    if (type && request.file.size > 10 * 1024 * 1024) {
-      response.status(413).json({ error: "Gallery images must be 10 MB or smaller." });
+    if (type && request.file.size > maxImageSize) {
+      response.status(413).json({ error: "Images must be 25 MB or smaller." });
       return;
     }
     const mediaType = type ? "image" : "video";
@@ -627,7 +628,7 @@ async function start() {
   app.use("/api/uploads", (error, _request, response, next) => {
     if (error instanceof multer.MulterError) {
       response.status(error.code === "LIMIT_FILE_SIZE" ? 413 : 400)
-        .json({ error: error.code === "LIMIT_FILE_SIZE" ? "Media files must be 100 MB or smaller." : "Choose one media file to upload." });
+        .json({ error: error.code === "LIMIT_FILE_SIZE" ? "Images must be 25 MB or smaller; videos must be 100 MB or smaller." : "Choose one media file to upload." });
       return;
     }
     next(error);
